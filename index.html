@@ -1,0 +1,1600 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <title>إيصالات الصيانة</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+        <style>
+            :root {
+                --navy: #1b3a57;
+                --navy-med: #2c4f73;
+                --bg: #f5f7fa;
+                --card: #ffffff;
+                --text: #232c36;
+                --muted: #6b7280;
+                --border: #e2e6eb;
+                --received-fg: #475569;
+                --received-bg: #eef1f4;
+                --sent-fg: #92400e;
+                --sent-bg: #fdf3e3;
+                --resolved-fg: #1e6b45;
+                --resolved-bg: #e4f5ea;
+                --rejected-fg: #9b2c2c;
+                --rejected-bg: #fbeaea;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: "IBM Plex Sans Arabic", sans-serif;
+                min-height: 100vh;
+            }
+            h1,
+            h2,
+            h3,
+            .display {
+                font-family: "Tajawal", sans-serif;
+            }
+            .num {
+                font-variant-numeric: tabular-nums;
+                letter-spacing: 0.5px;
+            }
+
+            #app {
+                max-width: 920px;
+                margin: 0 auto;
+                padding: 28px 20px 80px;
+            }
+
+            .topbar {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 22px;
+                flex-wrap: wrap;
+            }
+            .topbar h1 {
+                font-size: 26px;
+                font-weight: 800;
+                color: var(--navy);
+                margin: 0 0 4px;
+            }
+            .topbar p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 14px;
+            }
+            .stat {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 10px 18px;
+                text-align: center;
+                min-width: 110px;
+            }
+            .stat .n {
+                font-family: "Tajawal", sans-serif;
+                font-size: 22px;
+                font-weight: 800;
+                color: var(--navy);
+            }
+            .stat .l {
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .toolbar {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 16px;
+                flex-wrap: wrap;
+            }
+            input,
+            select,
+            textarea {
+                font-family: "IBM Plex Sans Arabic", sans-serif;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 12px;
+                font-size: 14px;
+                background: var(--card);
+                color: var(--text);
+            }
+            input:focus,
+            select:focus,
+            textarea:focus {
+                outline: 2px solid var(--navy-med);
+                outline-offset: 1px;
+            }
+            .search {
+                flex: 1;
+                min-width: 180px;
+            }
+
+            button {
+                font-family: "IBM Plex Sans Arabic", sans-serif;
+                cursor: pointer;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                padding: 10px 16px;
+                font-weight: 600;
+            }
+            .btn-primary {
+                background: var(--navy);
+                color: #fff;
+            }
+            .btn-primary:hover {
+                background: var(--navy-med);
+            }
+            .btn-ghost {
+                background: transparent;
+                color: var(--navy);
+                border: 1px solid var(--border);
+            }
+            .btn-ghost:hover {
+                background: #eef2f6;
+            }
+            .btn-sm {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .list {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                overflow: hidden;
+            }
+            .row {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--border);
+                cursor: pointer;
+            }
+            .row:last-child {
+                border-bottom: none;
+            }
+            .row:hover {
+                background: #fafbfc;
+            }
+            .row .no {
+                font-family: "Tajawal", sans-serif;
+                font-weight: 800;
+                font-size: 17px;
+                color: var(--navy);
+                min-width: 78px;
+            }
+            .row .who {
+                flex: 1;
+                min-width: 0;
+            }
+            .row .who b {
+                display: block;
+                font-size: 14.5px;
+            }
+            .row .who span {
+                display: block;
+                font-size: 12.5px;
+                color: var(--muted);
+                margin-top: 2px;
+            }
+            .row .meta {
+                text-align: left;
+                font-size: 12px;
+                color: var(--muted);
+                min-width: 90px;
+            }
+            .badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            .badge.received {
+                background: var(--received-bg);
+                color: var(--received-fg);
+            }
+            .badge.sent {
+                background: var(--sent-bg);
+                color: var(--sent-fg);
+            }
+            .badge.resolved {
+                background: var(--resolved-bg);
+                color: var(--resolved-fg);
+            }
+            .badge.rejected {
+                background: var(--rejected-bg);
+                color: var(--rejected-fg);
+            }
+
+            .empty {
+                padding: 60px 20px;
+                text-align: center;
+                color: var(--muted);
+            }
+            .empty b {
+                display: block;
+                color: var(--text);
+                font-size: 15px;
+                margin-bottom: 6px;
+            }
+
+            .overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(20, 26, 33, 0.45);
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                padding: 40px 16px;
+                overflow: auto;
+                z-index: 50;
+            }
+            .panel {
+                background: var(--card);
+                border-radius: 14px;
+                width: 100%;
+                max-width: 640px;
+                padding: 26px 26px 22px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+            }
+            .panel h2 {
+                margin: 0 0 4px;
+                font-size: 20px;
+                color: var(--navy);
+            }
+            .panel .sub {
+                color: var(--muted);
+                font-size: 13px;
+                margin-bottom: 18px;
+            }
+            .field {
+                margin-bottom: 14px;
+            }
+            .field label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: var(--text);
+            }
+            .field input,
+            .field select,
+            .field textarea {
+                width: 100%;
+            }
+            .grid2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+            }
+            .panel-actions {
+                display: flex;
+                justify-content: flex-start;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            /* Ticket / detail */
+            .ticket {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 14px;
+                overflow: hidden;
+                margin-bottom: 18px;
+            }
+            .ticket-head {
+                background: var(--navy);
+                color: #fff;
+                padding: 20px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 14px;
+            }
+            .ticket-head .no {
+                font-family: "Tajawal", sans-serif;
+                font-size: 30px;
+                font-weight: 800;
+            }
+            .ticket-head .no small {
+                font-size: 13px;
+                font-weight: 500;
+                opacity: 0.75;
+                display: block;
+                margin-bottom: 2px;
+            }
+            .ticket-body {
+                padding: 22px 24px;
+                border-bottom: 1px dashed var(--border);
+            }
+            .ticket-section {
+                padding: 18px 24px;
+                border-bottom: 1px dashed var(--border);
+            }
+            .ticket-section h4 {
+                margin: 0 0 12px;
+                font-size: 13px;
+                color: var(--navy-med);
+                font-weight: 700;
+            }
+            .inline-form {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                align-items: flex-end;
+            }
+            .inline-form .f {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+            .inline-form .f label {
+                font-size: 12px;
+                color: var(--muted);
+            }
+            .readonly-block {
+                background: #fafbfc;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 12px 14px;
+                font-size: 13.5px;
+            }
+            .readonly-block .meta {
+                color: var(--muted);
+                font-size: 12px;
+                margin-top: 4px;
+            }
+            .link-btn {
+                background: none;
+                border: none;
+                color: var(--navy-med);
+                font-size: 12.5px;
+                font-weight: 600;
+                padding: 0;
+                margin-top: 8px;
+                cursor: pointer;
+                text-decoration: underline;
+            }
+            .kv {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px 24px;
+            }
+            .kv .item span {
+                display: block;
+                font-size: 12px;
+                color: var(--muted);
+                margin-bottom: 3px;
+            }
+            .kv .item b {
+                font-size: 14.5px;
+            }
+            .kv .item.full {
+                grid-column: 1 / -1;
+            }
+            .status-row {
+                padding: 16px 24px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .status-row label {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--muted);
+            }
+            .actions-row {
+                padding: 0 24px 20px;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .history {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 14px;
+                padding: 20px 24px;
+            }
+            .history h3 {
+                margin: 0 0 14px;
+                font-size: 15px;
+                color: var(--navy);
+            }
+            .hitem {
+                display: flex;
+                gap: 12px;
+                padding: 10px 0;
+                border-top: 1px solid var(--border);
+            }
+            .hitem:first-child {
+                border-top: none;
+            }
+            .hitem .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--navy-med);
+                margin-top: 6px;
+                flex: none;
+            }
+            .hitem .t {
+                font-size: 12px;
+                color: var(--muted);
+                margin-bottom: 2px;
+            }
+            .hitem .n {
+                font-size: 14px;
+            }
+            .tag {
+                display: inline-block;
+                font-size: 11px;
+                padding: 1px 8px;
+                border-radius: 999px;
+                background: #eef2f6;
+                color: var(--navy-med);
+                font-weight: 600;
+                margin-left: 8px;
+            }
+            .add-note {
+                display: flex;
+                gap: 10px;
+                margin-top: 14px;
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+            .add-note textarea {
+                flex: 1;
+                min-height: 44px;
+                min-width: 180px;
+                resize: vertical;
+            }
+
+            .back {
+                background: none;
+                border: none;
+                color: var(--navy-med);
+                font-weight: 600;
+                padding: 0;
+                margin-bottom: 14px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+            }
+
+            .hint {
+                font-size: 12px;
+                color: var(--muted);
+                margin-top: 14px;
+                line-height: 1.7;
+            }
+
+            @media (max-width: 560px) {
+                .kv {
+                    grid-template-columns: 1fr;
+                }
+                .grid2 {
+                    grid-template-columns: 1fr;
+                }
+                .row {
+                    flex-wrap: wrap;
+                }
+            }
+
+            /* print */
+            #printArea {
+                display: none;
+            }
+            @media print {
+                body * {
+                    visibility: hidden;
+                }
+                #printArea,
+                #printArea * {
+                    visibility: visible;
+                }
+                #printArea {
+                    display: block;
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
+                }
+                @page {
+                    size: A4 landscape;
+                    margin: 0;
+                }
+                html,
+                body {
+                    background: #fff;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .print-wrapper {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    width: 100%;
+                    height: 100%;
+                }
+                .receipt-section {
+                    width: 50%;
+                    box-sizing: border-box;
+                    padding: 6mm 8mm;
+                    color: #000;
+                    font-family:
+                        "Segoe UI", Tahoma, "IBM Plex Sans Arabic", sans-serif;
+                }
+                .receipt-section:first-child {
+                    /* Ensure the section is positioned so the line stays attached to it */
+                    position: relative;
+                    /* border-left is intentionally removed here */
+                }
+
+                /* This creates a custom line inside the first receipt section */
+                .receipt-section:first-child::before {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    top: 5%; /* Pushes the line down from the top edge */
+                    height: 90%; /* Controls the exact height of the line */
+                    border-left: 1px dashed #999;
+                }
+
+                .receipt-header {
+                    border-bottom: 2px solid #000;
+                    padding-bottom: 4px;
+                    margin-bottom: 8px;
+                }
+                .r-header-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .r-header-row + .r-header-row {
+                    margin-top: 3px;
+                }
+                .r-logo-area {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+                .r-logo-area img {
+                    height: 30px;
+                    width: auto;
+                    max-width: 70px;
+                    object-fit: contain;
+                }
+                .r-logo-area h1 {
+                    margin: 0;
+                    font-size: 15px;
+                    color: #333;
+                    line-height: 1;
+                }
+                .r-meta {
+                    font-size: 11px;
+                    line-height: 1.3;
+                }
+                .r-barcodes {
+                    display: flex;
+                    gap: 10px;
+                    align-items: flex-end;
+                }
+                .r-barcode-box {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    font-size: 9px;
+                    font-weight: bold;
+                    color: #555;
+                }
+                .r-barcode-box svg {
+                    max-width: 100%;
+                    height: 18px;
+                }
+
+                .r-data {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 5px 10px;
+                    margin-bottom: 10px;
+                    font-size: 12px;
+                }
+                .r-data-row {
+                    border-bottom: 1px dashed #ccc;
+                    padding-bottom: 3px;
+                }
+                .r-data-row .label {
+                    font-weight: bold;
+                    display: inline-block;
+                    width: 100px;
+                }
+
+                .r-complain {
+                    border: 1px solid #000;
+                    padding: 5px;
+                    margin-bottom: 8px;
+                    border-radius: 3px;
+                    font-size: 12px;
+                }
+                .r-complain strong {
+                    display: block;
+                    margin-bottom: 2px;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 2px;
+                }
+                .r-notes-row {
+                    margin-top: 4px;
+                    padding-top: 3px;
+                    border-top: 1px dashed #ccc;
+                    font-size: 12px;
+                }
+                .r-notes-row strong {
+                    display: inline;
+                    border-bottom: none;
+                    padding-bottom: 0;
+                    margin-bottom: 0;
+                }
+
+                .r-terms {
+                    font-size: 10px;
+                    line-height: 1.4;
+                    margin-bottom: 8px;
+                }
+                .r-terms h3 {
+                    text-align: center;
+                    font-weight: bold;
+                    background: #f0f0f0;
+                    padding: 3px;
+                    border-radius: 3px;
+                    margin: 0 0 4px;
+                    font-size: 12px;
+                }
+                .r-terms p.intro {
+                    margin: 2px 0 4px;
+                    font-weight: bold;
+                    font-size: 11px;
+                }
+
+                .r-signatures {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 10px;
+                    font-weight: bold;
+                    font-size: 11px;
+                }
+                .r-signatures div {
+                    width: 130px;
+                    text-align: center;
+                    border-top: 1px solid #000;
+                    padding-top: 4px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app"></div>
+        <div id="printArea"></div>
+
+        <script>
+            const fmtNo = (n) => String(n);
+            const now = () => new Date();
+            const fmtDate = (d) => {
+                const dt = typeof d === "string" ? new Date(d) : d;
+                return dt.toLocaleString("en-GB", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                });
+            };
+            function generateReceiptCode() {
+                const d = now();
+                const yy = String(d.getFullYear()).slice(-2);
+                const mm = String(d.getMonth() + 1).padStart(2, "0");
+                const dd = String(d.getDate()).padStart(2, "0");
+                const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                let rand = "";
+                for (let i = 0; i < 4; i++)
+                    rand += chars.charAt(
+                        Math.floor(Math.random() * chars.length),
+                    );
+                return `${yy}${mm}${dd}-${rand}`;
+            }
+            const STAGES = {
+                received: { label: "استلام", cls: "received" },
+                diagnosed: { label: "اتفحص فنيًا", cls: "received" },
+                onsite_replace: { label: "اتستبدل على المحل", cls: "resolved" },
+                reject_customer_fault: {
+                    label: "مرفوض - عطل من العميل",
+                    cls: "rejected",
+                },
+                reject_out_of_warranty: {
+                    label: "مرفوض - خارج الضمان",
+                    cls: "rejected",
+                },
+                sent_main_branch: { label: "اتبعت للفرع الرئيسي", cls: "sent" },
+                sent_distributor: {
+                    label: "اتبعت للموزع المعتمد",
+                    cls: "sent",
+                },
+                closed_repaired: { label: "اتصلح", cls: "resolved" },
+                closed_replaced: {
+                    label: "اتستبدل من الموزع",
+                    cls: "resolved",
+                },
+                closed_refunded: { label: "استرجاع مبلغ", cls: "resolved" },
+                closed_rejected_ext: {
+                    label: "رفض من الجهة اللي اتبعتله",
+                    cls: "rejected",
+                },
+            };
+            const DECISIONS = {
+                onsite_replace: "استبدال / استرجاع فوري (خلال ١٤ يوم)",
+                reject_customer_fault: "رفض — عطل بسبب العميل",
+                reject_out_of_warranty: "رفض — خارج فترة الضمان",
+                sent_main_branch: "إرسال للفرع الرئيسي للفحص",
+                sent_distributor: "إرسال للموزع المعتمد مباشرة",
+            };
+            const TERMINAL_DECISIONS = [
+                "onsite_replace",
+                "reject_customer_fault",
+                "reject_out_of_warranty",
+            ];
+            const EXTERNAL_RESOLUTIONS = {
+                closed_repaired: "تم الإصلاح",
+                closed_replaced: "تم الاستبدال",
+                closed_refunded: "تم استرجاع المبلغ",
+                closed_rejected_ext: "مرفوض من الجهة اللي استلمته",
+            };
+            const TYPE_LABELS = {
+                general: "ملاحظة",
+                call: "مكالمة مع العميل",
+                external: "رد من الفرع الرئيسي / الموزع",
+                system: "تحديث النظام",
+            };
+            function computeStage(rec) {
+                if (rec.externalResolution) return rec.externalResolution;
+                if (rec.decision) return rec.decision;
+                if (rec.diagnosis) return "diagnosed";
+                return "received";
+            }
+            function isClosed(rec) {
+                if (rec.externalResolution) return true;
+                if (rec.decision && TERMINAL_DECISIONS.includes(rec.decision))
+                    return true;
+                return false;
+            }
+            function awaitingExternal(rec) {
+                return (
+                    rec.decision === "sent_main_branch" ||
+                    rec.decision === "sent_distributor"
+                );
+            }
+
+            const localDB = {
+                async get(key) {
+                    const v = localStorage.getItem(key);
+                    if (v === null) throw new Error("not found: " + key);
+                    return { key, value: v };
+                },
+                async set(key, value) {
+                    localStorage.setItem(key, value);
+                    return { key, value };
+                },
+                async list(prefix) {
+                    const keys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.indexOf(prefix) === 0) keys.push(k);
+                    }
+                    return { keys };
+                },
+            };
+
+            let state = {
+                view: "loading", // loading | list | new | detail | error
+                receipts: [],
+                search: "",
+                activeId: null,
+                saving: false,
+                errorMsg: "",
+                editingDecision: false,
+            };
+
+            async function loadAll() {
+                state.view = "loading";
+                render();
+                try {
+                    let keys = [];
+                    try {
+                        const r = await localDB.list("receipt-");
+                        keys = ((r && r.keys) || []).filter(
+                            (k) => k !== "receipt-counter",
+                        );
+                    } catch (e) {
+                        keys = [];
+                    }
+                    const items = [];
+                    for (const k of keys) {
+                        try {
+                            const res = await localDB.get(k);
+                            if (res && res.value)
+                                items.push(JSON.parse(res.value));
+                        } catch (e) {
+                            /* skip unreadable key */
+                        }
+                    }
+                    items.sort((a, b) => b.number - a.number);
+                    state.receipts = items;
+                    state.view = "list";
+                } catch (e) {
+                    state.view = "error";
+                    state.errorMsg =
+                        "مقدرش أجيب الإيصالات دلوقتي. جرّب تحدّث الصفحة.";
+                }
+                render();
+            }
+
+            async function nextNumber() {
+                // tries the real generator; regenerates on the rare chance of a same-day collision
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    const code = generateReceiptCode();
+                    try {
+                        await localDB.get("receipt-" + code);
+                        // no error thrown -> key already exists, try again
+                    } catch (e) {
+                        return code; // not found -> free to use
+                    }
+                }
+                return (
+                    generateReceiptCode() +
+                    "-" +
+                    Date.now().toString(36).slice(-3).toUpperCase()
+                );
+            }
+
+            async function createReceipt(data) {
+                state.saving = true;
+                render();
+                try {
+                    const number = await nextNumber();
+                    const rec = {
+                        id: "receipt-" + number,
+                        number,
+                        createdAt: now().toISOString(),
+                        customerName: data.customerName,
+                        customerPhone: data.customerPhone,
+                        productName: data.productName,
+                        serialNumber: data.serialNumber || "",
+                        purchaseDate: data.purchaseDate || "",
+                        invoiceNumber: data.invoiceNumber || "",
+                        warrantyStatus: data.warrantyStatus || "out",
+                        attachments: data.attachments || "",
+                        issue: data.issue,
+                        notes: data.notes || "",
+                        receivedBy: data.receivedBy,
+                        diagnosis: null,
+                        decision: null,
+                        decisionAt: null,
+                        decisionBy: null,
+                        externalResolution: null,
+                        history: [
+                            {
+                                at: now().toISOString(),
+                                by: data.receivedBy,
+                                note: "اتفتح السند واستلمنا الجهاز في الفرع.",
+                                type: "system",
+                            },
+                        ],
+                    };
+                    await localDB.set(rec.id, JSON.stringify(rec));
+                    state.receipts.unshift(rec);
+                    state.activeId = rec.id;
+                    state.view = "detail";
+                } catch (e) {
+                    alert("حصل خطأ وإحنا بنحفظ السند. جرّب تاني.");
+                }
+                state.saving = false;
+                render();
+            }
+
+            async function saveReceipt(rec) {
+                await localDB.set(rec.id, JSON.stringify(rec));
+                const idx = state.receipts.findIndex((r) => r.id === rec.id);
+                if (idx > -1) state.receipts[idx] = rec;
+            }
+
+            async function exportBackup() {
+                const counterRes = await localDB
+                    .get("receipt-counter")
+                    .catch(() => ({ value: "0" }));
+                const payload = {
+                    exportedAt: now().toISOString(),
+                    counter: counterRes.value || "0",
+                    receipts: state.receipts,
+                };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                    type: "application/json",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download =
+                    "نسخة-احتياطية-ايصالات-الصيانة-" +
+                    now().toISOString().slice(0, 10) +
+                    ".json";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
+            async function importBackup(file) {
+                const text = await file.text();
+                let payload;
+                try {
+                    payload = JSON.parse(text);
+                } catch (e) {
+                    alert("الملف ده مش نسخة احتياطية صالحة.");
+                    return;
+                }
+                if (
+                    !confirm(
+                        "استرجاع النسخة الاحتياطية هيستبدل كل البيانات الحالية على الجهاز ده. متأكد؟",
+                    )
+                )
+                    return;
+                await localDB.set(
+                    "receipt-counter",
+                    String(payload.counter || 0),
+                );
+                for (const rec of payload.receipts || []) {
+                    await localDB.set(rec.id, JSON.stringify(rec));
+                }
+                await loadAll();
+            }
+
+            async function recordDiagnosis(id, text, by) {
+                const rec = state.receipts.find((r) => r.id === id);
+                if (!rec) return;
+                rec.diagnosis = { text, by, at: now().toISOString() };
+                rec.history.unshift({
+                    at: now().toISOString(),
+                    by,
+                    note: "تشخيص الفني: " + text,
+                    type: "system",
+                });
+                await saveReceipt(rec);
+                render();
+            }
+
+            async function recordDecision(id, decisionKey, by) {
+                const rec = state.receipts.find((r) => r.id === id);
+                if (!rec || !DECISIONS[decisionKey]) return;
+                rec.decision = decisionKey;
+                rec.decisionAt = now().toISOString();
+                rec.decisionBy = by;
+                rec.externalResolution = null; // a re-decision resets any prior external answer
+                rec.history.unshift({
+                    at: now().toISOString(),
+                    by,
+                    note: "القرار: " + DECISIONS[decisionKey],
+                    type: "system",
+                });
+                await saveReceipt(rec);
+                render();
+            }
+
+            async function recordExternalResolution(id, resKey, by) {
+                const rec = state.receipts.find((r) => r.id === id);
+                if (!rec || !EXTERNAL_RESOLUTIONS[resKey]) return;
+                rec.externalResolution = resKey;
+                rec.history.unshift({
+                    at: now().toISOString(),
+                    by,
+                    note: "الرد النهائي: " + EXTERNAL_RESOLUTIONS[resKey],
+                    type: "system",
+                });
+                await saveReceipt(rec);
+                render();
+            }
+
+            async function addNote(id, text, type, by) {
+                const rec = state.receipts.find((r) => r.id === id);
+                if (!rec || !text) return;
+                rec.history.unshift({
+                    at: now().toISOString(),
+                    by: by || rec.receivedBy,
+                    note: text,
+                    type: type || "general",
+                });
+                await saveReceipt(rec);
+                render();
+            }
+
+            function esc(s) {
+                return (s || "").toString().replace(
+                    /[&<>"']/g,
+                    (m) =>
+                        ({
+                            "&": "&amp;",
+                            "<": "&lt;",
+                            ">": "&gt;",
+                            '"': "&quot;",
+                            "'": "&#39;",
+                        })[m],
+                );
+            }
+
+            function render() {
+                const app = document.getElementById("app");
+                if (state.view === "loading") {
+                    app.innerHTML = `<div class="empty">بنحمّل الإيصالات...</div>`;
+                    return;
+                }
+                if (state.view === "error") {
+                    app.innerHTML = `<div class="empty"><b>${esc(state.errorMsg)}</b><button class="btn-ghost" onclick="loadAll()">حاول تاني</button></div>`;
+                    return;
+                }
+                if (state.view === "new") {
+                    renderForm(app);
+                    return;
+                }
+                if (state.view === "detail") {
+                    renderDetail(app);
+                    return;
+                }
+                renderList(app);
+            }
+
+            function renderList(app) {
+                const q = state.search.trim().toLowerCase();
+                const items = !q
+                    ? state.receipts
+                    : state.receipts.filter(
+                          (r) =>
+                              String(r.number).includes(q) ||
+                              (r.customerName || "")
+                                  .toLowerCase()
+                                  .includes(q) ||
+                              (r.customerPhone || "").includes(q) ||
+                              (r.productName || "").toLowerCase().includes(q),
+                      );
+
+                const openCount = state.receipts.filter(
+                    (r) => !isClosed(r),
+                ).length;
+
+                app.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1>إيصالات الصيانة</h1>
+        <p>بديل رقمي لدفتر الإيصالات — كل حالة برقم متسلسل ثابت ورحلة كاملة من الاستلام للحل</p>
+      </div>
+      <div class="stat"><div class="n num">${state.receipts.length}</div><div class="l">إجمالي الحالات</div></div>
+      <div class="stat"><div class="n num">${openCount}</div><div class="l">قيد المعالجة</div></div>
+    </div>
+    <div class="toolbar">
+      <input class="search" id="searchInput" placeholder="دور برقم السند، اسم العميل، أو رقم التليفون" value="${esc(state.search)}">
+      <button class="btn-ghost btn-sm" id="exportBtn">⬇ نسخة احتياطية</button>
+      <label class="btn-ghost btn-sm" style="display:inline-flex; align-items:center;">
+        ⬆ استرجاع نسخة
+        <input type="file" id="importInput" accept="application/json" style="display:none;">
+      </label>
+      <button class="btn-primary" id="newBtn">+ سند صيانة جديد</button>
+    </div>
+    ${
+        items.length === 0
+            ? `
+      <div class="empty">
+        <b>${state.receipts.length === 0 ? "لسه مفيش أي إيصالات مسجلة" : "مفيش نتايج مطابقة"}</b>
+        ${state.receipts.length === 0 ? 'اضغط "سند صيانة جديد" عشان تسجل أول إيصال.' : "جرّب كلمة بحث تانية."}
+      </div>`
+            : `
+      <div class="list">
+        ${items
+            .map(
+                (r) => `
+          <div class="row" data-id="${r.id}">
+            <div class="no num">${fmtNo(r.number)}</div>
+            <div class="who">
+              <b>${esc(r.customerName)} — ${esc(r.productName)}</b>
+              <span>${esc(r.customerPhone)}${r.serialNumber ? " · س.ت " + esc(r.serialNumber) : ""}</span>
+            </div>
+            <span class="badge ${STAGES[computeStage(r)].cls}">${STAGES[computeStage(r)].label}</span>
+            <div class="meta">${fmtDate(r.createdAt)}</div>
+          </div>
+        `,
+            )
+            .join("")}
+      </div>
+    `
+    }
+  `;
+
+                document.getElementById("newBtn").onclick = () => {
+                    state.view = "new";
+                    render();
+                };
+                document.getElementById("searchInput").oninput = (e) => {
+                    state.search = e.target.value;
+                    const cursorPos = e.target.selectionStart;
+                    renderList(app);
+                    const freshInput = document.getElementById("searchInput");
+                    if (freshInput) {
+                        freshInput.focus();
+                        freshInput.setSelectionRange(cursorPos, cursorPos);
+                    }
+                };
+                document.getElementById("exportBtn").onclick = exportBackup;
+                document.getElementById("importInput").onchange = (e) => {
+                    if (e.target.files && e.target.files[0])
+                        importBackup(e.target.files[0]);
+                };
+                app.querySelectorAll(".row").forEach((el) => {
+                    el.onclick = () => {
+                        state.activeId = el.dataset.id;
+                        state.editingDecision = false;
+                        state.view = "detail";
+                        render();
+                    };
+                });
+            }
+
+            function renderForm(app) {
+                app.innerHTML = `
+    <button class="back" id="backBtn">→ رجوع</button>
+    <div class="panel" style="max-width:100%;">
+      <h2>سند صيانة جديد</h2>
+      <div class="sub">هيتحط له رقم متسلسل تلقائي أول ما تحفظ.</div>
+      <div class="grid2">
+        <div class="field"><label>اسم العميل</label><input id="f_customerName" placeholder="اسم العميل"></div>
+        <div class="field"><label>رقم التليفون</label><input id="f_customerPhone" placeholder="01xxxxxxxxx"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>اسم المنتج / الموديل</label><input id="f_productName" placeholder="مثال: كارت شاشة RTX 4070"></div>
+        <div class="field"><label>الرقم التسلسلي (لو موجود)</label><input id="f_serialNumber" placeholder="اختياري"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>تاريخ الشراء (لو معروف)</label><input id="f_purchaseDate" type="date"></div>
+        <div class="field"><label>رقم فاتورة الشراء</label><input id="f_invoiceNumber" placeholder="اختياري"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>حالة الضمان</label>
+          <select id="f_warrantyStatus">
+            <option value="in">داخل الضمان</option>
+            <option value="out">خارج الضمان (NA)</option>
+          </select>
+        </div>
+        <div class="field"><label>مرفقات الجهاز</label><input id="f_attachments" placeholder="مثال: كابل باور، كرتونة، شاحن"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>استلم بواسطة</label><input id="f_receivedBy" placeholder="اسمك"></div>
+        <div></div>
+      </div>
+      <div class="field"><label>المشكلة اللي العميل ذكرها</label><textarea id="f_issue" rows="3" placeholder="وصف العطل كما قاله العميل"></textarea></div>
+      <div class="field"><label>ملاحظات (اختياري)</label><input id="f_notes" placeholder="أي ملاحظات إضافية..."></div>
+      <div class="panel-actions">
+        <button class="btn-primary" id="saveBtn">حفظ وطباعة السند</button>
+        <button class="btn-ghost" id="cancelBtn">إلغاء</button>
+      </div>
+    </div>
+  `;
+                document.getElementById("backBtn").onclick = () => {
+                    state.view = "list";
+                    render();
+                };
+                document.getElementById("cancelBtn").onclick = () => {
+                    state.view = "list";
+                    render();
+                };
+                document.getElementById("saveBtn").onclick = async () => {
+                    const data = {
+                        customerName: document
+                            .getElementById("f_customerName")
+                            .value.trim(),
+                        customerPhone: document
+                            .getElementById("f_customerPhone")
+                            .value.trim(),
+                        productName: document
+                            .getElementById("f_productName")
+                            .value.trim(),
+                        serialNumber: document
+                            .getElementById("f_serialNumber")
+                            .value.trim(),
+                        purchaseDate:
+                            document.getElementById("f_purchaseDate").value,
+                        invoiceNumber: document
+                            .getElementById("f_invoiceNumber")
+                            .value.trim(),
+                        warrantyStatus:
+                            document.getElementById("f_warrantyStatus").value,
+                        attachments: document
+                            .getElementById("f_attachments")
+                            .value.trim(),
+                        receivedBy: document
+                            .getElementById("f_receivedBy")
+                            .value.trim(),
+                        issue: document.getElementById("f_issue").value.trim(),
+                        notes: document.getElementById("f_notes").value.trim(),
+                    };
+                    if (
+                        !data.customerName ||
+                        !data.productName ||
+                        !data.receivedBy
+                    ) {
+                        alert(
+                            "محتاجين على الأقل اسم العميل، اسم المنتج، واسم اللي استلم.",
+                        );
+                        return;
+                    }
+                    await createReceipt(data);
+                };
+            }
+
+            function renderDetail(app) {
+                const r = state.receipts.find((x) => x.id === state.activeId);
+                if (!r) {
+                    state.view = "list";
+                    render();
+                    return;
+                }
+                const stage = computeStage(r);
+                const showDecisionForm = !r.decision || state.editingDecision;
+                const needsExternal =
+                    awaitingExternal(r) && !r.externalResolution;
+
+                app.innerHTML = `
+    <button class="back" id="backBtn">→ رجوع لكل الحالات</button>
+    <div class="ticket">
+      <div class="ticket-head">
+        <div class="no num"><small>حالة صيانة رقم</small>${fmtNo(r.number)}</div>
+        <span class="badge ${STAGES[stage].cls}">${STAGES[stage].label}</span>
+      </div>
+      <div class="ticket-body">
+        <div class="kv">
+          <div class="item"><span>اسم العميل</span><b>${esc(r.customerName)}</b></div>
+          <div class="item"><span>رقم التليفون</span><b>${esc(r.customerPhone) || "—"}</b></div>
+          <div class="item"><span>المنتج</span><b>${esc(r.productName)}</b></div>
+          <div class="item"><span>الرقم التسلسلي</span><b>${esc(r.serialNumber) || "—"}</b></div>
+          <div class="item"><span>تاريخ الشراء</span><b>${r.purchaseDate || "—"}</b></div>
+          <div class="item"><span>رقم فاتورة الشراء</span><b>${esc(r.invoiceNumber) || "—"}</b></div>
+          <div class="item"><span>حالة الضمان عند الاستلام</span><b>${r.warrantyStatus === "in" ? "داخل الضمان" : "خارج الضمان (NA)"}</b></div>
+          <div class="item"><span>مرفقات الجهاز</span><b>${esc(r.attachments) || "—"}</b></div>
+          <div class="item"><span>استلم بواسطة</span><b>${esc(r.receivedBy)}</b></div>
+          <div class="item full"><span>شكوى العميل عند الاستلام</span><b>${esc(r.issue) || "—"}</b></div>
+          ${r.notes ? `<div class="item full"><span>ملاحظات</span><b>${esc(r.notes)}</b></div>` : ""}
+        </div>
+      </div>
+
+      <div class="ticket-section">
+        <h4>تشخيص الفني</h4>
+        ${
+            r.diagnosis
+                ? `
+          <div class="readonly-block">
+            ${esc(r.diagnosis.text)}
+            <div class="meta">سجّله ${esc(r.diagnosis.by)} — ${fmtDate(r.diagnosis.at)}</div>
+          </div>
+        `
+                : `
+          <div class="inline-form">
+            <div class="f" style="flex:1; min-width:220px;"><label>الفني لقى إيه؟</label><textarea id="diagText" rows="2" placeholder="نتيجة الفحص الفني الفعلي"></textarea></div>
+            <div class="f"><label>اسم الفني</label><input id="diagBy" placeholder="الاسم" style="width:140px;"></div>
+            <button class="btn-primary btn-sm" id="saveDiagBtn">تسجيل التشخيص</button>
+          </div>
+        `
+        }
+      </div>
+
+      <div class="ticket-section">
+        <h4>القرار</h4>
+        ${
+            r.decision && !showDecisionForm
+                ? `
+          <div class="readonly-block">
+            ${DECISIONS[r.decision]}
+            <div class="meta">قرّره ${esc(r.decisionBy || "")} — ${fmtDate(r.decisionAt)}</div>
+          </div>
+          <button class="link-btn" id="changeDecisionBtn">تصحيح القرار</button>
+        `
+                : `
+          <div class="inline-form">
+            <div class="f"><label>القرار</label>
+              <select id="decisionSelect" style="min-width:240px;">
+                <option value="">اختر القرار</option>
+                ${Object.entries(DECISIONS)
+                    .map(
+                        ([k, v]) =>
+                            `<option value="${k}" ${r.decision === k ? "selected" : ""}>${v}</option>`,
+                    )
+                    .join("")}
+              </select>
+            </div>
+            <div class="f"><label>اسم اللي قرر</label><input id="decisionBy" placeholder="الاسم" style="width:140px;"></div>
+            <button class="btn-primary btn-sm" id="saveDecisionBtn">${r.decision ? "تحديث القرار" : "تسجيل القرار"}</button>
+          </div>
+        `
+        }
+      </div>
+
+      ${
+          awaitingExternal(r)
+              ? `
+        <div class="ticket-section">
+          <h4>الرد من ${r.decision === "sent_main_branch" ? "الفرع الرئيسي" : "الموزع المعتمد"}</h4>
+          ${
+              r.externalResolution
+                  ? `
+            <div class="readonly-block">${EXTERNAL_RESOLUTIONS[r.externalResolution]}</div>
+            <button class="link-btn" id="changeExternalBtn">تعديل الرد</button>
+          `
+                  : `
+            <div class="inline-form">
+              <div class="f"><label>الرد</label>
+                <select id="externalSelect" style="min-width:220px;">
+                  <option value="">اختر الرد</option>
+                  ${Object.entries(EXTERNAL_RESOLUTIONS)
+                      .map(([k, v]) => `<option value="${k}">${v}</option>`)
+                      .join("")}
+                </select>
+              </div>
+              <div class="f"><label>اسم اللي سجل الرد</label><input id="externalBy" placeholder="الاسم" style="width:140px;"></div>
+              <button class="btn-primary btn-sm" id="saveExternalBtn">تسجيل الرد</button>
+            </div>
+          `
+          }
+        </div>
+      `
+              : ""
+      }
+
+      <div class="actions-row">
+        <button class="btn-ghost btn-sm" id="printBtn">🖨 طباعة السند</button>
+      </div>
+    </div>
+
+    <div class="history">
+      <h3>سجل الحالة (كل حاجة بتتضاف، ولا حاجة بتتمسح)</h3>
+      <div class="add-note">
+        <select id="noteType" style="max-width:170px;">
+          <option value="general">ملاحظة عامة</option>
+          <option value="call">مكالمة مع العميل</option>
+          <option value="external">رد من الفرع الرئيسي / الموزع</option>
+        </select>
+        <textarea id="noteText" placeholder="اكتب تحديث أو ملاحظة جديدة..."></textarea>
+        <input id="noteBy" placeholder="اسمك" style="width:120px;">
+        <button class="btn-primary btn-sm" id="addNoteBtn">إضافة</button>
+      </div>
+      <div style="margin-top:16px;">
+        ${r.history
+            .map(
+                (h) => `
+          <div class="hitem">
+            <div class="dot"></div>
+            <div>
+              <div class="t"><span class="tag">${TYPE_LABELS[h.type || "general"]}</span>${fmtDate(h.at)} — ${esc(h.by)}</div>
+              <div class="n">${esc(h.note)}</div>
+            </div>
+          </div>
+        `,
+            )
+            .join("")}
+      </div>
+    </div>
+    <div class="hint">السندات بتتخزن على الجهاز ده بس (زي دفتر الإيصالات بالظبط — مرتبط بمكان واحد). لو حبيت تستخدمها على أكتر من جهاز، أو تحافظ على نسخة منها، اعمل "نسخة احتياطية" بشكل دوري من الشاشة الرئيسية. لو ده هيبقى نظام دائم ومحتاج رقم موحّد على كل الفروع مع بعض، ده محتاج قاعدة بيانات حقيقية وممكن نبنيها وقتها.</div>
+  `;
+
+                document.getElementById("backBtn").onclick = () => {
+                    state.editingDecision = false;
+                    state.view = "list";
+                    render();
+                };
+                document.getElementById("printBtn").onclick = () =>
+                    printReceipt(r);
+
+                const diagBtn = document.getElementById("saveDiagBtn");
+                if (diagBtn)
+                    diagBtn.onclick = async () => {
+                        const text = document
+                            .getElementById("diagText")
+                            .value.trim();
+                        const by = document
+                            .getElementById("diagBy")
+                            .value.trim();
+                        if (!text || !by) {
+                            alert("محتاجين نتيجة الفحص واسم الفني.");
+                            return;
+                        }
+                        await recordDiagnosis(r.id, text, by);
+                    };
+
+                const changeDecisionBtn =
+                    document.getElementById("changeDecisionBtn");
+                if (changeDecisionBtn)
+                    changeDecisionBtn.onclick = () => {
+                        state.editingDecision = true;
+                        render();
+                    };
+                const saveDecisionBtn =
+                    document.getElementById("saveDecisionBtn");
+                if (saveDecisionBtn)
+                    saveDecisionBtn.onclick = async () => {
+                        const key =
+                            document.getElementById("decisionSelect").value;
+                        const by = document
+                            .getElementById("decisionBy")
+                            .value.trim();
+                        if (!key || !by) {
+                            alert("اختار القرار واكتب اسم اللي قرر.");
+                            return;
+                        }
+                        state.editingDecision = false;
+                        await recordDecision(r.id, key, by);
+                    };
+
+                const changeExternalBtn =
+                    document.getElementById("changeExternalBtn");
+                if (changeExternalBtn)
+                    changeExternalBtn.onclick = () => {
+                        r.externalResolution = null;
+                        render();
+                    };
+                const saveExternalBtn =
+                    document.getElementById("saveExternalBtn");
+                if (saveExternalBtn)
+                    saveExternalBtn.onclick = async () => {
+                        const key =
+                            document.getElementById("externalSelect").value;
+                        const by = document
+                            .getElementById("externalBy")
+                            .value.trim();
+                        if (!key || !by) {
+                            alert("اختار الرد واكتب اسم اللي سجله.");
+                            return;
+                        }
+                        await recordExternalResolution(r.id, key, by);
+                    };
+
+                document.getElementById("addNoteBtn").onclick = async () => {
+                    const txt = document
+                        .getElementById("noteText")
+                        .value.trim();
+                    const type = document.getElementById("noteType").value;
+                    const by =
+                        document.getElementById("noteBy").value.trim() ||
+                        r.receivedBy;
+                    if (!txt) return;
+                    await addNote(r.id, txt, type, by);
+                };
+            }
+
+            const COMPANY_NAME = "سيجما كومبيوتر"; // عدّل الاسم هنا لو مختلف
+            const TERMS_ITEMS = [
+                "في حالة وجود عطل أو عيب فني، يتم الرجوع إلى خدمة عملاء الشركة في الفرع الرئيسي، وذلك خلال أيام الأسبوع من الساعة 11 صباحًا حتى 6 مساءً، ما عدا يومي الجمعة والسبت، ولا تُحتسب أيام الجمعة والعطلات الرسمية وأيام الجرد السنوي من مدة الصيانة.",
+                "يحق الاستبدال والاسترجاع خلال 14 يومًا من تاريخ الشراء.",
+                "الضمان على عيوب الصناعة (الهاردوير) فقط، وليس على سوء الاستخدام (مثل: سائل منسكب، كسر، إلخ...)، أو السوفت وير مثل (ويندوز أو البرامج) المثبتة على الجهاز من قبل العميل.",
+                "لا يتم استلام أي صيانة إلا مع وجود فاتورة الشراء.",
+                "يعتبر الصنف خارج الضمان في حالة وجود كشط أو خدوش في الرقم التسلسلي، أو رقم الموديل، أو رقم الصنف، أو أي من البيانات الأصلية للمنتج، أو وجود خدوش مؤثرة في المنتج.",
+                "تقوم الشركة بفحص المنتج فحصًا ظاهريًا بالعين فقط عند الاستلام، ولا يعتبر المنتج مطابقًا لشروط الضمان إلا بعد رد المورد، وذلك خلال 15 يومًا من تاريخ استلام المورد للمنتج.",
+                "في حالة عدم توافر المنتج البديل، أو انتهاء عمر المنتج، أو إيقاف إنتاجه، يتم إعادة قيمة شراء المنتج الموجودة بالفاتورة إلى حساب العميل لشراء منتج آخر.",
+                "طبقًا لقرارات الشركة المصنعة للمنتجات، لا يعتبر وجود من 1 إلى 5 بيكسلات معيبة عيبًا في الشاشة، وعند ظهور عدد أكبر من ذلك يتم إحضار الشاشة إلى مركز خدمة العملاء.",
+                "الشركة غير مسؤولة عن أي منتج يتبقى لديها أكثر من 30 يومًا بعد إبلاغ العميل باستلام المنتج.",
+                'في حالة ضياع الإيصال، يرجى الاتصال برقم <strong dir="ltr">+20 10 99230060</strong> والإبلاغ عن ضياعه، أو حضور صاحب البيانات الموضحة بالإيصال.',
+                "مدة صيانة القطعة المطلوبة للمنتج خلال فترة الضمان تتراوح بين 20 إلى 25 يوم عمل حتى وصول القطعة.",
+                "ملحوظة: الشركة لا تتحمل أي مسؤولية قانونية عن أي برامج مسجلة على جهاز العميل، ويتحمل العميل المسؤولية القانونية الكاملة عن جميع البرامج الموجودة على جهازه.",
+                "الشركة غير مسؤولة عن أي بيانات (Data) أو سوفت وير (مثل: ويندوز أو البرامج المثبتة) الموجودة على الجهاز من قبل العميل.",
+            ];
+
+            function receiptCopyHtml(r) {
+                return `
+    <div class="receipt-section">
+      <div class="receipt-header">
+        <div class="r-header-row">
+          <div class="r-meta"><div><strong>رقم الإيصال: </strong><span dir="ltr">${fmtNo(r.number)}</span></div></div>
+          <div class="r-logo-area">
+            <img src="logo.png" alt="شعار ${esc(COMPANY_NAME)}" onerror="this.style.display='none'">
+          </div>
+        </div>
+        <div class="r-header-row">
+          <div class="r-meta"><div><strong>التاريخ: </strong><span dir="ltr">${fmtDate(r.createdAt)}</span></div></div>
+          <div class="r-barcodes">
+            <div class="r-barcode-box"><span>رقم الإيصال</span><svg class="r-barcode-receipt"></svg></div>
+            <div class="r-barcode-box"><span>السيريال</span><svg class="r-barcode-serial"></svg></div>
+          </div>
+        </div>
+      </div>
+      <div class="r-data">
+        <div class="r-data-row"><span class="label">اسم العميل: </span><span>${esc(r.customerName)}</span></div>
+        <div class="r-data-row"><span class="label">رقم الهاتف: </span><span>${esc(r.customerPhone) || "—"}</span></div>
+        <div class="r-data-row"><span class="label">نوع الجهاز: </span><span>${esc(r.productName)}</span></div>
+        <div class="r-data-row"><span class="label">الرقم المسلسل: </span><span>${esc(r.serialNumber) || "—"}</span></div>
+        <div class="r-data-row"><span class="label">رقم فاتورة الشراء: </span><span>${esc(r.invoiceNumber) || "—"}</span></div>
+        <div class="r-data-row"><span class="label">تاريخ الشراء: </span><span>${r.purchaseDate || "—"}</span></div>
+        <div class="r-data-row"><span class="label">حالة الضمان: </span><span>${r.warrantyStatus === "in" ? "داخل الضمان" : "خارج الضمان (NA)"}</span></div>
+        <div class="r-data-row"><span class="label">مرفقات الجهاز: </span><span>${esc(r.attachments) || "—"}</span></div>
+      </div>
+      <div class="r-complain">
+        <strong>نوع العطل (الشكوى):</strong>
+        <span>${esc(r.issue) || "—"}</span>
+        ${r.notes ? `<div class="r-notes-row"><strong>ملاحظات: </strong><span>${esc(r.notes)}</span></div>` : ""}
+      </div>
+      <div class="r-terms">
+        <h3>شروط الضمان</h3>
+        <p class="intro">عزيزي العميل، يرجى قراءة الشروط التالية لتسهيل تقديم أفضل خدمة لك.</p>
+        <p class="intro">يسري هذا الضمان على البضاعة المباعة بالشروط التالية:</p>
+        <ul>${TERMS_ITEMS.map((t) => `<li>${t}</li>`).join("")}</ul>
+      </div>
+      <div class="r-signatures">
+        <div>توقيع المستلم (المهندس)</div>
+        <div>توقيع العميل</div>
+      </div>
+    </div>
+  `;
+            }
+
+            function printReceipt(r) {
+                const pa = document.getElementById("printArea");
+                pa.innerHTML = `<div class="print-wrapper">${receiptCopyHtml(r)}${receiptCopyHtml(r)}</div>`;
+                if (window.JsBarcode) {
+                    const opts = {
+                        width: 1.2,
+                        height: 18,
+                        displayValue: false,
+                        margin: 0,
+                        background: "transparent",
+                    };
+                    document
+                        .querySelectorAll("#printArea .r-barcode-receipt")
+                        .forEach((el) => {
+                            try {
+                                JsBarcode(el, String(r.number), opts);
+                            } catch (e) {}
+                        });
+                    document
+                        .querySelectorAll("#printArea .r-barcode-serial")
+                        .forEach((el) => {
+                            try {
+                                JsBarcode(el, r.serialNumber || "000000", opts);
+                            } catch (e) {}
+                        });
+                }
+                window.print();
+            }
+
+            loadAll();
+        </script>
+    </body>
+</html>
